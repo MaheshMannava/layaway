@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { motion } from 'framer-motion';
-import Image from 'next/image';
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from "react";
+import Image from "next/image";
+import { motion } from "framer-motion";
 
 // Define passport size (adjust as needed)
 const IMAGE_WIDTH_PX = 100;
@@ -14,9 +14,10 @@ interface FloatingCopiumProps {
   initialDelay?: number; // Optional delay to stagger animations
 }
 
-export function FloatingCopium({ imageSrc, initialDelay = 0 }: FloatingCopiumProps) { // Destructure props
+export function FloatingCopium({ imageSrc, initialDelay = 0 }: FloatingCopiumProps) {
+  // Destructure props
   const [viewportSize, setViewportSize] = useState({ width: 0, height: 0 });
-  const [initialPosition, setInitialPosition] = useState({ x: 0, y: 0});
+  const [initialPosition, setInitialPosition] = useState({ x: 0, y: 0 });
 
   // Get viewport size on mount and resize
   useEffect(() => {
@@ -24,19 +25,18 @@ export function FloatingCopium({ imageSrc, initialDelay = 0 }: FloatingCopiumPro
       setViewportSize({ width: window.innerWidth, height: window.innerHeight });
     };
     updateSize(); // Initial size
-    window.addEventListener('resize', updateSize);
-    return () => window.removeEventListener('resize', updateSize);
+    window.addEventListener("resize", updateSize);
+    return () => window.removeEventListener("resize", updateSize);
   }, []);
 
   // Set initial random position once viewport size is known
   useEffect(() => {
     if (viewportSize.width > 0 && viewportSize.height > 0) {
-        const maxX = viewportSize.width - IMAGE_WIDTH_PX;
-        const maxY = viewportSize.height - IMAGE_HEIGHT_PX;
-        setInitialPosition({ x: Math.random() * maxX, y: Math.random() * maxY });
+      const maxX = viewportSize.width - IMAGE_WIDTH_PX;
+      const maxY = viewportSize.height - IMAGE_HEIGHT_PX;
+      setInitialPosition({ x: Math.random() * maxX, y: Math.random() * maxY });
     }
   }, [viewportSize]);
-
 
   if (!viewportSize.width || !viewportSize.height) {
     // Avoid rendering until viewport size is known
@@ -50,9 +50,9 @@ export function FloatingCopium({ imageSrc, initialDelay = 0 }: FloatingCopiumPro
   return (
     <motion.div
       style={{
-        position: 'fixed',
+        position: "fixed",
         zIndex: 9999, // Ensure it's above other content
-        pointerEvents: 'none', // Prevent interaction
+        pointerEvents: "none", // Prevent interaction
         width: `${IMAGE_WIDTH_PX}px`,
         height: `${IMAGE_HEIGHT_PX}px`,
       }}
@@ -76,9 +76,9 @@ export function FloatingCopium({ imageSrc, initialDelay = 0 }: FloatingCopiumPro
       transition={{
         delay: initialDelay, // Apply initial delay
         duration: 40 + Math.random() * 10, // Add slight random variation to duration
-        ease: 'linear',
+        ease: "linear",
         repeat: Infinity,
-        repeatType: 'mirror',
+        repeatType: "mirror",
       }}
     >
       <Image
@@ -86,8 +86,8 @@ export function FloatingCopium({ imageSrc, initialDelay = 0 }: FloatingCopiumPro
         alt="Floating Image"
         width={IMAGE_WIDTH_PX}
         height={IMAGE_HEIGHT_PX}
-        style={{ display: 'block' }}
+        style={{ display: "block" }}
       />
     </motion.div>
   );
-} 
+}

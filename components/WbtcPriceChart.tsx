@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+// import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import redstone from "redstone-api";
 
 interface PricePoint {
@@ -44,7 +44,7 @@ export const WbtcPriceChart = () => {
         const prices: RedStonePricePoint[] = await redstone.getHistoricalPrice("BTC", {
           startDate: startDate.toISOString(),
           endDate: endDate.toISOString(),
-          interval: 3600 * 1000, 
+          interval: 3600 * 1000,
         });
 
         setRawData(prices);
@@ -68,26 +68,30 @@ export const WbtcPriceChart = () => {
     // Process the rawData from RedStone when it's available
     if (rawData && rawData.length > 0) {
       // Format the data for the chart - adapt to RedStone's format { value, timestamp }
-      const formattedData = rawData.map((item: RedStonePricePoint) => {
-        const date = new Date(item.timestamp);
-        return {
-          timestamp: item.timestamp,
-          price: item.value, // Use 'value' from RedStone data
-          date: `${date.toLocaleDateString()} ${date.getHours()}:${String(date.getMinutes()).padStart(2, "0")}`,
-        };
-      }).sort((a, b) => a.timestamp - b.timestamp); // Ensure data is sorted by time
+      const formattedData = rawData
+        .map((item: RedStonePricePoint) => {
+          const date = new Date(item.timestamp);
+          return {
+            timestamp: item.timestamp,
+            price: item.value, // Use 'value' from RedStone data
+            date: `${date.toLocaleDateString()} ${date.getHours()}:${String(date.getMinutes()).padStart(2, "0")}`,
+          };
+        })
+        .sort((a, b) => a.timestamp - b.timestamp); // Ensure data is sorted by time
 
       setChartData(formattedData);
 
       // Get the current price and calculate change
       if (formattedData.length > 0) {
         const latestPrice = formattedData[formattedData.length - 1].price;
-        setCurrentPrice(latestPrice.toLocaleString('en-US', { 
-          style: 'currency', 
-          currency: 'USD',
-          minimumFractionDigits: 2,
-          maximumFractionDigits: 2
-        }));
+        setCurrentPrice(
+          latestPrice.toLocaleString("en-US", {
+            style: "currency",
+            currency: "USD",
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          }),
+        );
 
         // Calculate 24h price change percentage (approximate based on available data points)
         const twentyFourHoursAgo = Date.now() - 24 * 60 * 60 * 1000;
@@ -96,10 +100,10 @@ export const WbtcPriceChart = () => {
         for (let i = formattedData.length - 1; i >= 0; i--) {
           if (formattedData[i].timestamp <= twentyFourHoursAgo) {
             oneDayAgoPrice = formattedData[i].price;
-            break; 
+            break;
           }
         }
-        
+
         const changePercent = ((latestPrice - oneDayAgoPrice) / oneDayAgoPrice) * 100;
         setPriceChange(changePercent);
       }
@@ -123,26 +127,26 @@ export const WbtcPriceChart = () => {
 
     // Generate SVG path with smoothing
     // Create a cubic bezier curve for smoother lines
-    const createSmoothPath = (points: { x: number, y: number }[]) => {
-      if (points.length < 2) return '';
-      
+    const createSmoothPath = (points: { x: number; y: number }[]) => {
+      if (points.length < 2) return "";
+
       let path = `M ${points[0].x},${points[0].y}`;
-      
+
       for (let i = 0; i < points.length - 1; i++) {
         const x1 = points[i].x;
         const y1 = points[i].y;
         const x2 = points[i + 1].x;
         const y2 = points[i + 1].y;
-        
+
         // Calculate control points for the curve
         const controlX1 = x1 + (x2 - x1) / 3;
         const controlY1 = y1;
         const controlX2 = x2 - (x2 - x1) / 3;
         const controlY2 = y2;
-        
+
         path += ` C ${controlX1},${controlY1} ${controlX2},${controlY2} ${x2},${y2}`;
       }
-      
+
       return path;
     };
 
@@ -167,46 +171,38 @@ export const WbtcPriceChart = () => {
           </defs>
 
           {/* Area under the curve */}
-          <path 
-            d={areaPath} 
-            fill="url(#gradient)" 
-            strokeWidth="0"
-          />
+          <path d={areaPath} fill="url(#gradient)" strokeWidth="0" />
 
           {/* The line */}
-          <path 
-            d={smoothPath} 
-            fill="none" 
-            stroke="#22C55E" 
+          <path
+            d={smoothPath}
+            fill="none"
+            stroke="#22C55E"
             strokeWidth="0.5"
             strokeLinecap="round"
             strokeLinejoin="round"
           />
 
           {/* Price points - only show a few key points */}
-          {chartData.filter((_, i) => i % Math.max(1, Math.floor(chartData.length / 6)) === 0).map((point, i) => {
-            const x = (i * Math.max(1, Math.floor(chartData.length / 6)) / (chartData.length - 1)) * 100;
-            const y = 100 - ((point.price - minPrice) / range) * 100;
-            
-            return (
-              <circle
-                key={point.timestamp}
-                cx={x}
-                cy={y}
-                r="0.8"
-                fill="#22C55E"
-              />
-            );
-          })}
+          {chartData
+            .filter((_, i) => i % Math.max(1, Math.floor(chartData.length / 6)) === 0)
+            .map((point, i) => {
+              const x = ((i * Math.max(1, Math.floor(chartData.length / 6))) / (chartData.length - 1)) * 100;
+              const y = 100 - ((point.price - minPrice) / range) * 100;
+
+              return <circle key={point.timestamp} cx={x} cy={y} r="0.8" fill="#22C55E" />;
+            })}
         </svg>
 
         {/* X-axis labels */}
         <div className="flex justify-between mt-1 text-xs text-gray-500">
-          {chartData.filter((_, i) => i % Math.max(1, Math.floor(chartData.length / 6)) === 0).map((point) => (
-            <div key={point.timestamp} className="text-center">
-              {new Date(point.timestamp).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
-            </div>
-          ))}
+          {chartData
+            .filter((_, i) => i % Math.max(1, Math.floor(chartData.length / 6)) === 0)
+            .map(point => (
+              <div key={point.timestamp} className="text-center">
+                {new Date(point.timestamp).toLocaleDateString(undefined, { month: "short", day: "numeric" })}
+              </div>
+            ))}
         </div>
 
         {/* Y-axis labels */}
@@ -249,14 +245,10 @@ export const WbtcPriceChart = () => {
           <h2 className="text-4xl font-bold">{currentPrice}</h2>
           <p className="flex items-center">
             <span className={priceChange >= 0 ? "text-green-600" : "text-red-600"}>
-              {priceChange >= 0 ? "+" : ""}{priceChange.toFixed(2)}%
-              <span className="ml-1">
-                {priceChange >= 0 ? "↑" : "↓"}
-              </span>
+              {priceChange >= 0 ? "+" : ""}
+              {priceChange.toFixed(2)}%<span className="ml-1">{priceChange >= 0 ? "↑" : "↓"}</span>
             </span>
-            <span className="ml-2 text-sm">
-              BTC/USD 
-            </span>
+            <span className="ml-2 text-sm">BTC/USD</span>
           </p>
         </div>
       </div>
@@ -264,4 +256,4 @@ export const WbtcPriceChart = () => {
       {renderSimpleChart()}
     </div>
   );
-}; 
+};
